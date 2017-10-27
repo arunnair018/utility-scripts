@@ -24,7 +24,6 @@ public class http {
 		
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpPost httpPost = new HttpPost("https://seraph.karunya.edu:1003");
-	   	//Arun
 	    String urlString = "https://seraph.karunya.edu:1003"; // URL to call
 
 		JSONObject jsonObject = new JSONObject();
