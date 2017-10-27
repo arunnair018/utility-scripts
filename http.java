@@ -7,7 +7,7 @@ public class http {
         URL ip = new URL("http://www.amazon.com");
     	URLConnection conn = ip.openConnection();
     	String h1=conn.getURL();
-    	System.out.println(h1);	
+    	System.out.println(h1);
 		try {
 	     InputStream in = new BufferedInputStream(conn.getInputStream());
 	     InputStreamReader isr = new InputStreamReader(in);
@@ -24,7 +24,7 @@ public class http {
 		
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpPost httpPost = new HttpPost("https://seraph.karunya.edu:1003");
-	   
+	   	//Arun
 	    String urlString = "https://seraph.karunya.edu:1003"; // URL to call
 
 		JSONObject jsonObject = new JSONObject();
