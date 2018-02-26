@@ -46,6 +46,3 @@ try:
     print("Successfully deleted the object")
 except ClientException as e:
     print("Failed to delete the object with error: %s" % e)
-
-
-
