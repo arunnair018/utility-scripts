@@ -24,5 +24,3 @@ except:
 	print('Usage:\n\t',
 		'encryption: python3 cipher.py encrypt filename password\n\t',
 		'decryption: python3 cipher.py decrypt filename password\n')
-
-
