@@ -1,4 +1,3 @@
-# For clean docker build
 
 # change and uncomment to project directory if executing from root
 # eval "cd ~/Documents/impressBot/"
@@ -13,7 +12,7 @@ if [[ $1 = "restart" ]]; then
     eval "docker-compose down"
 
     # up all containers
-    echo "\nBringing up containers...";
+    echo "\Starting up containers...";
     eval "docker-compose up"
 
 # to rebuild the server
@@ -47,7 +46,7 @@ elif [[ $1 = "rebuild" ]] ; then
     echo "\n\n Bringing up containers..."
     docker-compose up
 else
-    # if no argument provided, help
+    # if no argument provided
    echo "\n run  'sh dockerscript.sh restart/rebuild'"
    echo "\t restart - to compose down and up all the containers"
    echo "\t rebuild - to remove all container, images and volume, then rebuild fresh.\n"
