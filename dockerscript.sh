@@ -1,8 +1,14 @@
+# Script for clean docker build
+
+# To create alias command
+# add "alias <alias name>="sh <path to this file>"' to .bashrc/.zshrc file
+# ex -> alias dock="sh ~/dockerscript.sh"
 
 # change and uncomment to project directory if executing from root
 # eval "cd ~/Documents/impressBot/"
 
 # login to aws, sourcing the rc file
+# if using bash replace "zshrc" with "bashrc"
 eval "source ~/.zshrc"
 
 # to restart the server
