@@ -1,9 +1,20 @@
 #!/bin/bash
+
+# Install Node.js v16 using nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.bashrc
+nvm install 16
+node -v
+npm -v
+
+# Exit on error
 set -e
 
 # Clean workspace
 rm -rf vuln-scan
-npm create vite@latest vuln-scan -- --template react
+
+# Create a temporary Vite React project
+npm create vite@4 vuln-scan -- --template react
 cd vuln-scan
 
 # Function to scan a version
@@ -48,7 +59,6 @@ run_scan() {
       directVulns.forEach(v => {
         out.sev[v.severity]++;
         out.vulns.push({
-          version: process.env.VERSION,
           name: v.name,
           current: pkg.dependencies[v.name] || "",
           severity: v.severity,
@@ -57,7 +67,6 @@ run_scan() {
                 ? v.fixAvailable.name + "@" + v.fixAvailable.version
                 : v.fixAvailable.version)
             : null,
-          major: v.fixAvailable && v.fixAvailable.isSemVerMajor
         });
       });
 
@@ -72,13 +81,16 @@ run_scan() {
 # Collect results
 res1=$(run_scan "v1" "../web-package/node1/package.json")
 res2=$(run_scan "v2" "../web-package/node2/package.json")
+echo "Scan results collected."
+echo "Node1 Result: $res1"
+echo "Node2 Result: $res2"
 
 # Combine results
-node -e "
+combined_result=$(node -e "
 const r1 = JSON.parse(\`$res1\`);
 const r2 = JSON.parse(\`$res2\`);
-
 const combined = {
+  timestamp : new Date().toISOString(),
   total: r1.total + r2.total,
   sev: { critical: 0, high: 0, moderate: 0, low: 0 },
   vulns: [...r1.vulns, ...r2.vulns]
@@ -86,26 +98,49 @@ const combined = {
 ['critical', 'high', 'moderate', 'low'].forEach(k => {
   combined.sev[k] = r1.sev[k] + r2.sev[k];
 });
+console.log(JSON.stringify(combined));
+")
 
-console.log('=== Combined Vulnerability Report ===');
-console.log('Total vulnerable deps:', combined.total);
-
-console.log('\\nBreakdown:');
-for (const k of ['critical', 'high', 'moderate', 'low'])
-  console.log('  ' + k.toUpperCase() + ':', combined.sev[k]);
-
-if (combined.vulns.length > 0) {
-  console.log('\\nVulnerable packages:');
-  combined.vulns.forEach(v => {
-    console.log(' - [' + v.version + '] ' + v.name + '@' + v.current + ' (' + v.severity + ')');
-    if (v.fix) {
-      console.log('    fix:', v.fix, v.major ? '(major)' : '');
+# Format final result
+formatted_result=$(node -e '
+const combined = JSON.parse(`'"$combined_result"'`);
+const finalReport = {
+  scanner: {
+    name: "fe-package-vuln-scan",
+    engine: "npm-audit",
+    ruleset: "npm-audit-default"
+  },
+  summary: {
+    total_vulnerabilities: combined.total,
+    severity: {
+      critical: combined.sev.critical,
+      high: combined.sev.high,
+      moderate: combined.sev.moderate,
+      low: combined.sev.low
     }
-  });
-} else {
-  console.log('\\n✅ No vulnerabilities found across v1 and v2!');
-}
-"
+  },
+  vulnerabilities: combined.vulns,
+  generated_at: combined.timestamp
+};
+console.log(JSON.stringify(finalReport, null, 2));
+')
+
+# Prepare Slack message (multiline JSON code block)
+SLK_MSG=":male-factory-worker: <!subteam^SEJN6TVNE>
+*Frontend Package Vulnerability Scan Report:*
+\`\`\`
+$formatted_result
+\`\`\`"
+
+# Escape it properly so Slack accepts it
+escaped_msg=$(node -e "console.log(JSON.stringify(process.argv[1]))" "$SLK_MSG")
+
+# Send to Slack
+curl -X POST -H 'Content-type: application/json' \
+--data '{"text": '"$escaped_msg"'}' \
+$SLACK_DEVELOPMENT_WEBHOOK
+
+echo "Formatted Result: $escaped_msg"
 
 # Clean up
 cd ..
